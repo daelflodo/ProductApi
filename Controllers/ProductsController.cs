@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ProductApi.Models;
-using System.Text.Json;
+using ProductApi.Services;
 
 namespace ProductApi.Controllers;
 
@@ -8,28 +8,24 @@ namespace ProductApi.Controllers;
 [Route("api/[controller]")]
 public class ProductsController : ControllerBase
 {
-    private static readonly List<Product> products = new()
-    {
-        new Product
-        {
-            Id = 1,
-            Name = "Laptop",
-            Price = 1200,
-            Stock = 10,
-        },
-        new Product
-        {
-            Id = 2,
-            Name = "mouse",
-            Price = 25,
-            Stock = 50,
-        } 
-    };
+    private readonly IProductService productService;
 
-     // GET: api/products
-        [HttpGet]
-        public IActionResult GetProducts()
+    public ProductsController(IProductService productService)
     {
+        this.productService = productService;
+    }
+
+    // GET: api/products
+    [HttpGet]
+    public IActionResult GetProducts()
+    {
+        var products = productService.GetAll();
+        
+        if (!products.Any())
+        {
+            return NotFound(new { message = "Products not found" });
+        }
+        
         return Ok(products);
     }
 
@@ -37,49 +33,55 @@ public class ProductsController : ControllerBase
     [HttpGet("{id}")]
     public IActionResult GetProduct(int id)
     {
-        var product = products.FirstOrDefault(p => p.Id == id);
-
+        var product = productService.GetById(id);
+        
+        if (product == null)
+        {
+            return NotFound(new { message = $"Product with ID {id} not found" });
+        }
+        
         return Ok(product);
     }
 
     // POST: api/products
     [HttpPost]
-    public IActionResult CreateProduct(Product product)
+    public IActionResult CreateProduct([FromBody] Product product)
     {
-
-        product.Id = products.Count + 1;
-        var json = JsonSerializer.Serialize(product, new JsonSerializerOptions 
-        { 
-            WriteIndented = true // Para formato bonito
-        });
-        Console.WriteLine(json);
-
-        products.Add(product);
-
-        return Ok(product);
+        var createdProduct = productService.Create(product);
+        
+        if (createdProduct == null)
+        {
+            return BadRequest(new { message = "Invalid product data" });
+        }
+        
+        return CreatedAtAction(nameof(GetProduct), new { id = createdProduct.Id }, createdProduct);
     }
 
     // PUT: api/products/1
     [HttpPut("{id}")]
-    public IActionResult UpdateProduct(int id, Product product)
+    public IActionResult UpdateProduct(int id, [FromBody] Product product)
     {
-        var _product = products.FirstOrDefault(p => p.Id == id);
-        _product.Name = product.Name;
-        _product.Price = product.Price;
-        _product.Stock = product.Stock;
-
-        return Ok(_product);
+        var updatedProduct = productService.Update(id, product);
+        
+        if (updatedProduct == null)
+        {
+            return NotFound(new { message = $"Product with ID {id} not found or invalid data" });
+        }
+        
+        return Ok(updatedProduct);
     }
 
     // DELETE: api/products/1
     [HttpDelete("{id}")]
     public IActionResult DeleteProduct(int id)
     {
-        var product = products.FirstOrDefault(p => p.Id == id);
-
-        products.Remove(product);
-
-        return Ok();
+        var deleted = productService.Delete(id);
+        
+        if (!deleted)
+        {
+            return NotFound(new { message = $"Product with ID {id} not found" });
+        }
+        
+        return NoContent();
     }
-
 }

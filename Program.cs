@@ -1,4 +1,9 @@
+using ProductApi.Repositories;
+using ProductApi.Services;
+
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
