@@ -1,4 +1,5 @@
 using ProductApi.Models;
+using ProductApi.DTOs;
 using ProductApi.Repositories;
 
 namespace ProductApi.Services;
@@ -12,44 +13,44 @@ public class ProductService : IProductService
         this.productRepository = productRepository;
     }
 
-    public List<Product> GetAll()
+    public async Task<List<Product>> GetAllAsync()
     {
-        return productRepository.GetAll();
+        return await productRepository.GetAllAsync();
     }
-    public Product? GetById(int id)
+    public async Task<Product?> GetByIdAsync(int id)
     {
-        return productRepository.GetById(id);
+        return await productRepository.GetByIdAsync(id);
     }
-    public Product? Create(Product product)
+    public async Task<Product?> CreateAsync(CreateProductDto dto)
     {
         // 1. Validar que el producto no sea null
-        if (product == null)
+        if (dto == null)
         {
             return null;  // Retornamos null si es null
         }
 
         // 2. Validar nombre
-        if (string.IsNullOrWhiteSpace(product.Name))
+        if (string.IsNullOrWhiteSpace(dto.Name))
         {
             return null;  // Retornamos null si el nombre está vacío
         }
 
         // 3. Validar precio
-        if (product.Price <= 0)
+        if (dto.Price <= 0)
         {
             return null;  // Retornamos null si el precio es inválido
         }
 
         // 4. Validar stock
-        if (product.Stock < 0)
+        if (dto.Stock < 0)
         {
             return null;  // Retornamos null si el stock es negativo
         }
 
         // 5. Validar duplicado
-        var allProducts = productRepository.GetAll();
+        var allProducts = await productRepository.GetAllAsync();
         var existingProduct = allProducts.FirstOrDefault(p =>
-            p.Name.Equals(product.Name, StringComparison.OrdinalIgnoreCase));
+            p.Name.Equals(dto.Name, StringComparison.OrdinalIgnoreCase));
 
         if (existingProduct != null)
         {
@@ -57,10 +58,15 @@ public class ProductService : IProductService
         }
 
         // 6. Crear producto
-        return productRepository.Create(product);
+        return await productRepository.CreateAsync(new Product
+        {
+            Name = dto.Name,
+            Price = dto.Price,
+            Stock = dto.Stock
+        });
     }
 
-    public Product? Update(int id, Product product)
+    public async Task<Product?> UpdateAsync(int id, UpdateProductDto dto)
     {
         // 1. Validar ID
         if (id <= 0)
@@ -69,33 +75,33 @@ public class ProductService : IProductService
         }
 
         // 2. Validar que el producto no sea null
-        if (product == null)
+        if (dto == null)
         {
             return null;
         }
 
         // 3. Validar nombre
-        if (string.IsNullOrWhiteSpace(product.Name))
+        if (string.IsNullOrWhiteSpace(dto.Name))
         {
             return null;
         }
 
         // 4. Validar precio
-        if (product.Price <= 0)
+        if (dto.Price <= 0)
         {
             return null;
         }
 
         // 5. Validar stock
-        if (product.Stock < 0)
+        if (dto.Stock < 0)
         {
             return null;
         }
 
         // 6. Validar duplicado (excluyendo el producto actual)
-        var allProducts = productRepository.GetAll();
+        var allProducts = await productRepository.GetAllAsync();
         var existingProduct = allProducts.FirstOrDefault(p =>
-            p.Id != id && p.Name.Equals(product.Name, StringComparison.OrdinalIgnoreCase));
+            p.Id != id && p.Name.Equals(dto.Name, StringComparison.OrdinalIgnoreCase));
 
         if (existingProduct != null)
         {
@@ -103,15 +109,20 @@ public class ProductService : IProductService
         }
 
         // 7. Actualizar producto
-        return productRepository.Update(id, product);
+        return await productRepository.UpdateAsync(id, new Product
+        {
+            Name = dto.Name,
+            Price = dto.Price,
+            Stock = dto.Stock
+        });
     }
-    public bool Delete(int id)
+    public async Task<bool> DeleteAsync(int id)
     {
         if (id <= 0)
         {
             return false;
         }
 
-        return productRepository.Delete(id);
+        return await productRepository.DeleteAsync(id);
     }
 }

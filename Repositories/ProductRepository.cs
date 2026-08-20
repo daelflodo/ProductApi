@@ -20,22 +20,22 @@ public class ProductRepository : IProductRepository
             Stock = 50,
         }
     };
-    public List<Product> GetAll()
+    public async Task<List<Product>> GetAllAsync()
     {
-        return products;
+        return await Task.FromResult(products);
     }
-    public Product? GetById(int id)
+    public async Task<Product?> GetByIdAsync(int id)
     {
-        return products.FirstOrDefault(p => p.Id == id);
+        return await Task.FromResult( products.FirstOrDefault(p => p.Id == id));
     }
-    public Product Create(Product product)
+    public async Task<Product?> CreateAsync(Product product)
     {
         // ✅ La forma más LINQ y elegante
         product.Id = products.Select(p => p.Id).DefaultIfEmpty(0).Max() + 1;
         products.Add(product);
-        return product;
+        return await Task.FromResult(product);
     }
-    public Product? Update(int id, Product product)
+    public async Task<Product?> UpdateAsync(int id, Product product)
     {
         var existingProduct = products.FirstOrDefault(p => p.Id == id);
 
@@ -48,10 +48,10 @@ public class ProductRepository : IProductRepository
         existingProduct.Price = product.Price;
         existingProduct.Stock = product.Stock;
 
-        return existingProduct;
+        return await Task.FromResult(existingProduct);
     }
 
-    public bool Delete(int id)
+    public async Task<bool> DeleteAsync(int id)
     {
         var product = products.FirstOrDefault(p => p.Id == id);
 
@@ -62,6 +62,6 @@ public class ProductRepository : IProductRepository
 
         products.Remove(product);
 
-        return true;
+        return await Task.FromResult(true);
     }
 }

@@ -4,13 +4,14 @@ namespace ProductApi.Repositories;
 
 public interface IProductRepository
 {
-    List<Product> GetAll();
 
-    Product? GetById(int id);
+    Task<List<Product>> GetAllAsync();
 
-    Product Create(Product product);
+    Task<Product?> GetByIdAsync(int id);
 
-    Product? Update(int id, Product product);
+    Task<Product?> CreateAsync(Product product);
 
-    bool Delete(int id);
+    Task<Product?> UpdateAsync(int id, Product product);
+
+    Task<bool> DeleteAsync(int id);
 }
