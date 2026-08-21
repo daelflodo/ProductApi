@@ -1,13 +1,12 @@
 using ProductApi.DTOs;
-using ProductApi.Models;
 
 namespace ProductApi.Services;
 
 public interface IProductService
 {
-    Task<List<Product>> GetAllAsync();
-    Task<Product?> GetByIdAsync(int id);
-    Task<Product?> CreateAsync(CreateProductDto dto);
-    Task<Product?> UpdateAsync(int id, UpdateProductDto dto);
+    Task<List<ProductResponseDto>> GetAllAsync();
+    Task<ProductResponseDto?> GetByIdAsync(int id);
+    Task<ProductResponseDto?> CreateAsync(CreateProductDto dto);
+    Task<ProductResponseDto?> UpdateAsync(int id, UpdateProductDto dto);
     Task<bool> DeleteAsync(int id);
 }

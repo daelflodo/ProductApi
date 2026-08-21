@@ -13,15 +13,23 @@ public class ProductService : IProductService
         this.productRepository = productRepository;
     }
 
-    public async Task<List<Product>> GetAllAsync()
+    public async Task<List<ProductResponseDto>> GetAllAsync()
     {
-        return await productRepository.GetAllAsync();
+        var products = await productRepository.GetAllAsync();
+        return products.Select(MapToResponseDto).ToList();
+
     }
-    public async Task<Product?> GetByIdAsync(int id)
+
+    public async Task<ProductResponseDto?> GetByIdAsync(int id)
     {
-        return await productRepository.GetByIdAsync(id);
+        var product = await productRepository.GetByIdAsync(id);
+        if (product == null)
+            return null;
+
+        return MapToResponseDto(product);
     }
-    public async Task<Product?> CreateAsync(CreateProductDto dto)
+
+    public async Task<ProductResponseDto?> CreateAsync(CreateProductDto dto)
     {
         // 1. Validar que el producto no sea null
         if (dto == null)
@@ -58,15 +66,21 @@ public class ProductService : IProductService
         }
 
         // 6. Crear producto
-        return await productRepository.CreateAsync(new Product
+        var createdProduct = await productRepository.CreateAsync(new Product
         {
             Name = dto.Name,
             Price = dto.Price,
             Stock = dto.Stock
         });
+        if (createdProduct == null)
+        {
+            return null;
+        }
+
+        return MapToResponseDto(createdProduct);
     }
 
-    public async Task<Product?> UpdateAsync(int id, UpdateProductDto dto)
+    public async Task<ProductResponseDto?> UpdateAsync(int id, UpdateProductDto dto)
     {
         // 1. Validar ID
         if (id <= 0)
@@ -109,13 +123,21 @@ public class ProductService : IProductService
         }
 
         // 7. Actualizar producto
-        return await productRepository.UpdateAsync(id, new Product
+        var updatedProduct = await productRepository.UpdateAsync(id, new Product
         {
             Name = dto.Name,
             Price = dto.Price,
             Stock = dto.Stock
         });
+        // ✅ Validar que el producto fue actualizado correctamente
+        if (updatedProduct == null)
+        {
+            return null;
+        }
+
+        return MapToResponseDto(updatedProduct);
     }
+
     public async Task<bool> DeleteAsync(int id)
     {
         if (id <= 0)
@@ -124,5 +146,17 @@ public class ProductService : IProductService
         }
 
         return await productRepository.DeleteAsync(id);
+    }
+
+    private static ProductResponseDto MapToResponseDto(Product product)
+    {
+        return new ProductResponseDto
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Price = product.Price,
+            Stock = product.Stock
+        };
+
     }
 }
