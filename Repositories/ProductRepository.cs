@@ -1,43 +1,35 @@
+using Microsoft.EntityFrameworkCore;
 using ProductApi.Models;
+using ProductApi.Data;
+
 namespace ProductApi.Repositories;
 
 public class ProductRepository : IProductRepository
 {
-    private static readonly List<Product> products = new()
+    private readonly AppDbContext context;
+
+    public ProductRepository(AppDbContext context)
     {
-        new Product
-        {
-            Id = 1,
-            Name = "Laptop",
-            Price = 1200,
-            Stock = 10,
-        },
-        new Product
-        {
-            Id = 2,
-            Name = "Mouse",
-            Price = 25,
-            Stock = 50,
-        }
-    };
+        this.context = context;
+    }
+
     public async Task<List<Product>> GetAllAsync()
     {
-        return await Task.FromResult(products);
+        return await context.Products.ToListAsync();
     }
     public async Task<Product?> GetByIdAsync(int id)
     {
-        return await Task.FromResult( products.FirstOrDefault(p => p.Id == id));
+        return await context.Products.FirstOrDefaultAsync(p => p.Id == id);
     }
     public async Task<Product?> CreateAsync(Product product)
     {
-        // ✅ La forma más LINQ y elegante
-        product.Id = products.Select(p => p.Id).DefaultIfEmpty(0).Max() + 1;
-        products.Add(product);
-        return await Task.FromResult(product);
+        context.Products.Add(product);
+        await context.SaveChangesAsync();
+        return product;
     }
     public async Task<Product?> UpdateAsync(int id, Product product)
     {
-        var existingProduct = products.FirstOrDefault(p => p.Id == id);
+        var existingProduct = await context.Products.FirstOrDefaultAsync(p => p.Id == id);
 
         if (existingProduct == null)
         {
@@ -48,20 +40,22 @@ public class ProductRepository : IProductRepository
         existingProduct.Price = product.Price;
         existingProduct.Stock = product.Stock;
 
-        return await Task.FromResult(existingProduct);
+        await context.SaveChangesAsync();
+        return existingProduct;
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var product = products.FirstOrDefault(p => p.Id == id);
+        var product = await context.Products.FirstOrDefaultAsync(p => p.Id == id);
 
         if (product == null)
         {
             return false;
         }
 
-        products.Remove(product);
+        context.Products.Remove(product);
+        await context.SaveChangesAsync();
 
-        return await Task.FromResult(true);
+        return true;
     }
 }
