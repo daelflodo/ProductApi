@@ -1,6 +1,7 @@
 using ProductApi.Models;
 using ProductApi.DTOs;
 using ProductApi.Repositories;
+using ProductApi.Exceptions;
 
 namespace ProductApi.Services;
 
@@ -24,7 +25,9 @@ public class ProductService : IProductService
     {
         var product = await productRepository.GetByIdAsync(id);
         if (product == null)
-            return null;
+        {
+            throw new NotFoundException($"Product with id {id} not found");
+        }
 
         return MapToResponseDto(product);
     }
@@ -132,7 +135,7 @@ public class ProductService : IProductService
         // ✅ Validar que el producto fue actualizado correctamente
         if (updatedProduct == null)
         {
-            return null;
+            throw new NotFoundException($"Product with id {id} not found");
         }
 
         return MapToResponseDto(updatedProduct);
@@ -145,7 +148,12 @@ public class ProductService : IProductService
             return false;
         }
 
-        return await productRepository.DeleteAsync(id);
+        var delelted = await productRepository.DeleteAsync(id);
+        if (!delelted)
+        {
+            throw new NotFoundException($"Product with id {id} not found");
+        }
+        return delelted;
     }
 
     private static ProductResponseDto MapToResponseDto(Product product)

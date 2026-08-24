@@ -34,12 +34,6 @@ public class ProductsController : ControllerBase
     public async Task<IActionResult> GetProduct(int id)
     {
         var product = await productService.GetByIdAsync(id);
-        
-        if (product == null)
-        {
-            return NotFound(new { message = $"Product with ID {id} not found" });
-        }
-        
         return Ok(product);
     }
 
@@ -62,12 +56,6 @@ public class ProductsController : ControllerBase
     public async Task<IActionResult> UpdateProduct(int id, [FromBody] UpdateProductDto dto)
     {
         var updatedProduct = await productService.UpdateAsync(id, dto);
-        
-        if (updatedProduct == null)
-        {
-            return NotFound(new { message = $"Product with ID {id} not found or invalid data" });
-        }
-        
         return Ok(updatedProduct);
     }
 
